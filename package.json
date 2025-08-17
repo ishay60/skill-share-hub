@@ -1,0 +1,34 @@
+{
+  "name": "skill-share-hub",
+  "version": "0.1.0",
+  "description": "A SaaS knowledge spaces platform where creators can monetize knowledge through premium content and real-time Q&A sessions.",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "infra/*"
+  ],
+  "scripts": {
+    "dev": "npm run --parallel --recursive dev",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:api": "npm run dev --workspace=api",
+    "build": "npm run --recursive build",
+    "test": "npm run --recursive test",
+    "lint": "npm run --recursive lint",
+    "typecheck": "npm run --recursive typecheck",
+    "clean": "npm run --recursive clean",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "setup": "npm install && npm run docker:up"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "prettier": "^3.1.0",
+    "eslint": "^8.55.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
