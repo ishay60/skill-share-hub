@@ -1,0 +1,26 @@
+# SkillShareHub Development Aliases
+# Add this to your ~/.bashrc or ~/.zshrc file
+
+# Quick navigation
+alias s="cd /Users/ishaymac/gemini_workspace/skill-share-hub"
+alias sa="cd /Users/ishaymac/gemini_workspace/skill-share-hub/apps/api"
+alias sw="cd /Users/ishaymac/gemini_workspace/skill-share-hub/apps/web"
+
+# Development commands
+alias dev="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh"
+alias dev-api="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh api"
+alias dev-web="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh web"
+alias dev-all="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh all"
+alias dev-stop="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh stop"
+alias dev-restart="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh restart"
+
+# Database commands
+alias db="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh db"
+alias db-logs="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh logs"
+alias db-seed="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh seed"
+
+# Testing
+alias test="cd /Users/ishaymac/gemini_workspace/skill-share-hub && ./dev.sh test"
+
+# Quick status check
+alias status="cd /Users/ishaymac/gemini_workspace/skill-share-hub && echo '📊 Checking service status...' && curl -s http://localhost:4000/health | head -1 && echo '🌐 Web: http://localhost:3000' && echo '📊 API: http://localhost:4000'"
