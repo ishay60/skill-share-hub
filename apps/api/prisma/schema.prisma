@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  password_hash String
+  role          String       @default("user")
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  
+  // Relations
+  spaces        Space[]      @relation("SpaceOwner")
+  memberships   Membership[]
+  authoredPosts Post[]       @relation("PostAuthor")
+  
+  @@map("users")
+}
+
+model Space {
+  id          String       @id @default(cuid())
+  ownerId     String
+  name        String
+  slug        String       @unique
+  description String?
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  
+  // Relations
+  owner       User         @relation("SpaceOwner", fields: [ownerId], references: [id])
+  posts       Post[]
+  memberships Membership[]
+  
+  @@map("spaces")
+}
+
+model Post {
+  id           String    @id @default(cuid())
+  spaceId      String
+  authorId     String
+  title        String
+  content_md   String
+  is_premium   Boolean   @default(false)
+  published_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  
+  // Relations
+  space        Space     @relation(fields: [spaceId], references: [id])
+  author       User      @relation("PostAuthor", fields: [authorId], references: [id])
+  
+  @@map("posts")
+}
+
+model Membership {
+  id         String   @id @default(cuid())
+  userId     String
+  spaceId    String
+  status     String   @default("none") // enum: free|paid|none
+  started_at DateTime @default(now())
+  
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+  space      Space    @relation(fields: [spaceId], references: [id])
+  
+  @@unique([userId, spaceId])
+  @@map("memberships")
+}

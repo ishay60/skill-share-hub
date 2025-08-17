@@ -5,6 +5,11 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 
+// Import routes
+import authRoutes from './routes/auth';
+import spaceRoutes from './routes/spaces';
+import postRoutes from './routes/posts';
+
 // Load environment variables
 config();
 
@@ -40,11 +45,15 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '0.1.0',
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
   });
 });
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/spaces', spaceRoutes);
+app.use('/api/posts', postRoutes);
 
 // API version endpoint
 app.get('/api/v1/health', (req, res) => {
