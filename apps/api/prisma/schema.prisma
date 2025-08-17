@@ -22,6 +22,7 @@ model User {
   spaces        Space[]      @relation("SpaceOwner")
   memberships   Membership[]
   authoredPosts Post[]       @relation("PostAuthor")
+  subscriptions Subscription[]
   
   @@map("users")
 }
@@ -39,6 +40,8 @@ model Space {
   owner       User         @relation("SpaceOwner", fields: [ownerId], references: [id])
   posts       Post[]
   memberships Membership[]
+  plans       Plan[]
+  subscriptions Subscription[]
   
   @@map("spaces")
 }
@@ -74,4 +77,41 @@ model Membership {
   
   @@unique([userId, spaceId])
   @@map("memberships")
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  spaceId      String
+  name         String   // e.g., "Monthly", "Yearly"
+  interval     String   // enum: month|year
+  price_cents  Int
+  stripe_price_id String? // Stripe Price ID
+  created_at   DateTime @default(now())
+  
+  // Relations
+  space        Space    @relation(fields: [spaceId], references: [id])
+  subscriptions Subscription[]
+  
+  @@map("plans")
+}
+
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  spaceId             String
+  planId              String?
+  stripe_customer_id  String
+  stripe_sub_id       String
+  status              String   // enum: active|past_due|canceled|unpaid
+  current_period_start DateTime
+  current_period_end   DateTime
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  
+  // Relations
+  user                User     @relation(fields: [userId], references: [id])
+  space               Space    @relation(fields: [spaceId], references: [id])
+  plan                Plan?    @relation(fields: [planId], references: [id])
+  
+  @@map("subscriptions")
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
+import Pricing from '../components/Pricing';
 
 interface Post {
   id: string;
@@ -16,6 +17,12 @@ interface Space {
   slug: string;
   description?: string;
   posts: Post[];
+  plans: Array<{
+    id: string;
+    name: string;
+    interval: 'month' | 'year';
+    price_cents: number;
+  }>;
 }
 
 const SpacePage: React.FC = () => {
@@ -117,6 +124,18 @@ const SpacePage: React.FC = () => {
             </div>
           </div>
 
+          {/* Pricing Section */}
+          {space.plans && space.plans.length > 0 && (
+            <div id="pricing-section" className="mb-8">
+              <Pricing
+                spaceId={space.id}
+                spaceName={space.name}
+                plans={space.plans}
+                onSubscriptionChange={loadSpace}
+              />
+            </div>
+          )}
+
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-semibold text-gray-900">Posts</h2>
@@ -179,10 +198,22 @@ const SpacePage: React.FC = () => {
                       {new Date(post.published_at).toLocaleDateString()}
                     </p>
                     <div className="mt-4 p-4 bg-indigo-50 rounded-md">
-                      <p className="text-sm text-indigo-700">
+                      <p className="text-sm text-indigo-700 mb-3">
                         🔒 This is premium content. Subscribe to access this
                         post and more exclusive content.
                       </p>
+                      {space.plans && space.plans.length > 0 && (
+                        <button
+                          onClick={() =>
+                            document
+                              .getElementById('pricing-section')
+                              ?.scrollIntoView({ behavior: 'smooth' })
+                          }
+                          className="text-sm text-indigo-700 hover:text-indigo-800 font-medium underline"
+                        >
+                          View subscription plans →
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

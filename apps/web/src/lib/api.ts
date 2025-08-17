@@ -16,6 +16,13 @@ interface AuthResponse {
   token: string;
 }
 
+interface Plan {
+  id: string;
+  name: string;
+  interval: 'month' | 'year';
+  price_cents: number;
+}
+
 interface Space {
   id: string;
   name: string;
@@ -27,10 +34,18 @@ interface Space {
     is_premium: boolean;
     published_at: string;
   }>;
+  plans: Plan[];
   _count: {
     posts: number;
     memberships: number;
   };
+}
+
+interface Subscription {
+  id: string;
+  status: string;
+  currentPeriodEnd: string;
+  plan: Plan;
 }
 
 class ApiClient {
@@ -45,10 +60,10 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     // Get token from localStorage
     const token = localStorage.getItem('token');
-    
+
     const config: RequestInit = {
       ...options,
       headers: {
@@ -121,17 +136,46 @@ class ApiClient {
   // Post endpoints
   async getSpacePosts(slug: string, premium?: boolean) {
     const params = premium !== undefined ? `?premium=${premium}` : '';
-    return this.request<{ space: Space; posts: Post[] }>(`/api/posts/space/${slug}${params}`);
+    return this.request<{ space: Space; posts: Post[] }>(
+      `/api/posts/space/${slug}${params}`
+    );
   }
 
-  async createPost(spaceId: string, postData: {
-    title: string;
-    content_md: string;
-    is_premium: boolean;
-  }) {
+  async createPost(
+    spaceId: string,
+    postData: {
+      title: string;
+      content_md: string;
+      is_premium: boolean;
+    }
+  ) {
     return this.request(`/api/posts/${spaceId}`, {
       method: 'POST',
       body: JSON.stringify(postData),
+    });
+  }
+
+  // Billing endpoints
+  async createCheckoutSession(spaceId: string, planId: string) {
+    return this.request<{ sessionId: string; url: string }>(
+      '/api/billing/checkout',
+      {
+        method: 'POST',
+        body: JSON.stringify({ spaceId, planId }),
+      }
+    );
+  }
+
+  async getSubscriptionStatus(spaceId: string) {
+    return this.request<{
+      hasActiveSubscription: boolean;
+      subscription?: Subscription;
+    }>(`/api/billing/subscription/${spaceId}`);
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    return this.request(`/api/billing/subscription/${subscriptionId}/cancel`, {
+      method: 'POST',
     });
   }
 }

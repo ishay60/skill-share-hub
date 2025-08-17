@@ -9,6 +9,7 @@ import { config } from 'dotenv';
 import authRoutes from './routes/auth';
 import spaceRoutes from './routes/spaces';
 import postRoutes from './routes/posts';
+import billingRoutes from './routes/billing';
 
 // Load environment variables
 config();
@@ -28,10 +29,12 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.APP_URL || 'http://localhost:3000',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.APP_URL || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -50,10 +53,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test billing endpoint
+app.get('/test-billing', (req, res) => {
+  res.json({
+    message: 'Billing routes are working',
+    timestamp: new Date().toISOString(),
+    stripe_key_configured: !!process.env.STRIPE_SECRET_KEY,
+    webhook_secret_configured: !!process.env.STRIPE_WEBHOOK_SECRET,
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/spaces', spaceRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/billing', billingRoutes);
 
 // API version endpoint
 app.get('/api/v1/health', (req, res) => {
