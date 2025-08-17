@@ -61,13 +61,43 @@ export class AuthController {
         token,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-        return;
-      }
-
       console.error('Signup error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      
+      // Handle specific Prisma errors
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as any;
+        
+        if (prismaError.code === 'P2002') {
+          res.status(400).json({ error: 'An account with this email already exists' });
+          return;
+        }
+        
+        if (prismaError.code === 'P1010') {
+          res.status(500).json({ error: 'Database connection issue. Please try again later.' });
+          return;
+        }
+      }
+      
+      // Handle validation errors
+      if (error instanceof Error) {
+        if (error.message.includes('Required')) {
+          res.status(400).json({ error: 'Please fill in all required fields' });
+          return;
+        }
+        
+        if (error.message.includes('Invalid email')) {
+          res.status(400).json({ error: 'Please enter a valid email address' });
+          return;
+        }
+        
+        if (error.message.includes('password')) {
+          res.status(400).json({ error: 'Password must be at least 6 characters long' });
+          return;
+        }
+      }
+      
+      // Generic error for unexpected issues
+      res.status(500).json({ error: 'Something went wrong. Please try again.' });
     }
   }
 
@@ -121,13 +151,33 @@ export class AuthController {
         token,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-        return;
-      }
-
       console.error('Login error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      
+      // Handle specific Prisma errors
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as any;
+        
+        if (prismaError.code === 'P1010') {
+          res.status(500).json({ error: 'Database connection issue. Please try again later.' });
+          return;
+        }
+      }
+      
+      // Handle validation errors
+      if (error instanceof Error) {
+        if (error.message.includes('Required')) {
+          res.status(400).json({ error: 'Please fill in all required fields' });
+          return;
+        }
+        
+        if (error.message.includes('Invalid email')) {
+          res.status(400).json({ error: 'Please enter a valid email address' });
+          return;
+        }
+      }
+      
+      // Generic error for unexpected issues
+      res.status(500).json({ error: 'Something went wrong. Please try again.' });
     }
   }
 
