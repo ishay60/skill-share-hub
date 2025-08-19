@@ -16,7 +16,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export class BillingController {
-  static async createCheckoutSession(req: Request, res: Response): Promise<void> {
+  static async createCheckoutSession(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const { spaceId, planId } = req.body;
       const authenticatedReq = req as AuthenticatedRequest;
@@ -54,7 +57,9 @@ export class BillingController {
       });
 
       if (existingSubscription) {
-        res.status(400).json({ error: 'User already has an active subscription' });
+        res
+          .status(400)
+          .json({ error: 'User already has an active subscription' });
         return;
       }
 
@@ -118,7 +123,11 @@ export class BillingController {
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig as string, endpointSecret);
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig as string,
+        endpointSecret
+      );
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       res.status(400).send(`Webhook Error: ${err}`);
@@ -128,13 +137,19 @@ export class BillingController {
     try {
       switch (event.type) {
         case 'checkout.session.completed':
-          await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+          await handleCheckoutSessionCompleted(
+            event.data.object as Stripe.Checkout.Session
+          );
           break;
         case 'customer.subscription.updated':
-          await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+          await handleSubscriptionUpdated(
+            event.data.object as Stripe.Subscription
+          );
           break;
         case 'customer.subscription.deleted':
-          await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          await handleSubscriptionDeleted(
+            event.data.object as Stripe.Subscription
+          );
           break;
         default:
           console.log(`Unhandled event type: ${event.type}`);
@@ -147,7 +162,10 @@ export class BillingController {
     }
   }
 
-  static async getSubscriptionStatus(req: Request, res: Response): Promise<void> {
+  static async getSubscriptionStatus(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = authenticatedReq.user.userId;
@@ -213,7 +231,10 @@ export class BillingController {
         data: { status: 'canceled' },
       });
 
-      res.json({ message: 'Subscription will be canceled at the end of the current period' });
+      res.json({
+        message:
+          'Subscription will be canceled at the end of the current period',
+      });
     } catch (error) {
       console.error('Cancel subscription error:', error);
       res.status(500).json({ error: 'Failed to cancel subscription' });
@@ -222,14 +243,19 @@ export class BillingController {
 }
 
 // Webhook handlers
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
+async function handleCheckoutSessionCompleted(
+  session: Stripe.Checkout.Session
+): Promise<void> {
   const { userId, spaceId, planId } = session.metadata!;
   const subscription = session.subscription as string;
 
   try {
     // Get subscription details from Stripe
-    const stripeSubscription = await stripe.subscriptions.retrieve(subscription);
-    const customer = await stripe.customers.retrieve(stripeSubscription.customer as string);
+    const stripeSubscription =
+      await stripe.subscriptions.retrieve(subscription);
+    const customer = await stripe.customers.retrieve(
+      stripeSubscription.customer as string
+    );
 
     // Check if subscription already exists
     const existingSubscription = await prisma.subscription.findFirst({
@@ -242,8 +268,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
         where: { id: existingSubscription.id },
         data: {
           status: stripeSubscription.status,
-          current_period_start: new Date(stripeSubscription.current_period_start * 1000),
-          current_period_end: new Date(stripeSubscription.current_period_end * 1000),
+          current_period_start: new Date(
+            stripeSubscription.current_period_start * 1000
+          ),
+          current_period_end: new Date(
+            stripeSubscription.current_period_end * 1000
+          ),
         },
       });
     } else {
@@ -256,8 +286,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
           stripe_customer_id: customer.id as string,
           stripe_sub_id: subscription,
           status: stripeSubscription.status,
-          current_period_start: new Date(stripeSubscription.current_period_start * 1000),
-          current_period_end: new Date(stripeSubscription.current_period_end * 1000),
+          current_period_start: new Date(
+            stripeSubscription.current_period_start * 1000
+          ),
+          current_period_end: new Date(
+            stripeSubscription.current_period_end * 1000
+          ),
         },
       });
     }
@@ -349,9 +383,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
 
     if (dbSubscription) {
       await prisma.membership.updateMany({
-        where: { 
-          userId: dbSubscription.userId, 
-          spaceId: dbSubscription.spaceId 
+        where: {
+          userId: dbSubscription.userId,
+          spaceId: dbSubscription.spaceId,
         },
         data: { status: 'none' },
       });
