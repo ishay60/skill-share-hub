@@ -245,31 +245,33 @@ app.use('*', (req, res) => {
 });
 
 // Global error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response) => {
   console.error('Global error handler:', err);
-  
+
   // Handle specific error types
   if (err.message.includes('PrismaClientInitializationError')) {
     res.status(500).json({
       error: 'Service Temporarily Unavailable',
-      message: 'We\'re experiencing technical difficulties. Please try again in a few minutes.',
+      message:
+        "We're experiencing technical difficulties. Please try again in a few minutes.",
     });
     return;
   }
-  
+
   if (err.message.includes('P1010')) {
     res.status(500).json({
       error: 'Service Temporarily Unavailable',
-      message: 'We\'re experiencing database issues. Please try again later.',
+      message: "We're experiencing database issues. Please try again later.",
     });
     return;
   }
-  
+
   // In development, show more details; in production, show generic message
-  const message = process.env.NODE_ENV === 'development' 
-    ? err.message 
-    : 'Something went wrong. Please try again later.';
-  
+  const message =
+    process.env.NODE_ENV === 'development'
+      ? err.message
+      : 'Something went wrong. Please try again later.';
+
   res.status(500).json({
     error: 'Internal Server Error',
     message,

@@ -15,10 +15,26 @@ interface PricingProps {
   onSubscriptionChange?: () => void;
 }
 
-const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscriptionChange }) => {
+interface Subscription {
+  id: string;
+  status: string;
+  currentPeriodEnd: string;
+  plan: {
+    name: string;
+    price_cents: number;
+    interval: string;
+  };
+}
+
+const Pricing: React.FC<PricingProps> = ({
+  spaceId,
+  spaceName,
+  plans,
+  onSubscriptionChange,
+}) => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     hasActiveSubscription: boolean;
-    subscription?: any;
+    subscription?: Subscription;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,7 +43,7 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
     loadSubscriptionStatus();
   }, [spaceId]);
 
-  const loadSubscriptionStatus = async () => {
+  const loadSubscriptionStatus = async (): Promise<void> => {
     try {
       const response = await apiClient.getSubscriptionStatus(spaceId);
       if (response.error) {
@@ -40,7 +56,7 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: string): Promise<void> => {
     setIsLoading(true);
     setError('');
 
@@ -62,14 +78,16 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const handleCancelSubscription = async (): Promise<void> => {
     if (!subscriptionStatus?.subscription?.id) return;
 
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await apiClient.cancelSubscription(subscriptionStatus.subscription.id);
+      const response = await apiClient.cancelSubscription(
+        subscriptionStatus.subscription.id
+      );
       if (response.error) {
         setError(response.error);
         return;
@@ -85,15 +103,18 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
     }
   };
 
-  const formatPrice = (cents: number) => {
+  const formatPrice = (cents: number): string => {
     return `$${(cents / 100).toFixed(2)}`;
   };
 
-  const formatInterval = (interval: string) => {
+  const formatInterval = (interval: string): string => {
     return interval === 'month' ? 'month' : 'year';
   };
 
-  if (subscriptionStatus?.hasActiveSubscription) {
+  if (
+    subscriptionStatus?.hasActiveSubscription &&
+    subscriptionStatus.subscription
+  ) {
     const subscription = subscriptionStatus.subscription;
     return (
       <div className="bg-white rounded-lg shadow-sm border p-6 border-green-200">
@@ -103,10 +124,13 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
             You're subscribed to {spaceName}
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            Current plan: {subscription.plan.name} ({formatPrice(subscription.plan.price_cents)}/{formatInterval(subscription.plan.interval)})
+            Current plan: {subscription.plan.name} (
+            {formatPrice(subscription.plan.price_cents)}/
+            {formatInterval(subscription.plan.interval)})
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            Next billing date: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+            Next billing date:{' '}
+            {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
           </p>
           <button
             onClick={handleCancelSubscription}
@@ -138,7 +162,7 @@ const Pricing: React.FC<PricingProps> = ({ spaceId, spaceName, plans, onSubscrip
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        {plans.map((plan) => (
+        {plans.map(plan => (
           <div
             key={plan.id}
             className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"

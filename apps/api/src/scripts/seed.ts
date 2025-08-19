@@ -3,7 +3,7 @@ import { hashPassword } from '../lib/auth';
 
 const prisma = new PrismaClient();
 
-async function main() {
+async function main(): Promise<void> {
   console.log('🌱 Starting database seed...');
 
   // Clean up existing data
@@ -96,7 +96,7 @@ async function main() {
   console.log('📝 Created test posts');
 
   // Create test membership
-  const membership = await prisma.membership.create({
+  await prisma.membership.create({
     data: {
       userId: viewer.id,
       spaceId: space.id,

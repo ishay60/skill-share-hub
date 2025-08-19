@@ -1,38 +1,35 @@
 import { Request, Response } from 'express';
+import { comparePassword, generateToken, hashPassword } from '../lib/auth';
+import { loginSchema, signupSchema } from '../schemas/auth';
 import { prisma } from '../lib/prisma';
-import { hashPassword, comparePassword, generateToken } from '../lib/auth';
-import { signupSchema, loginSchema } from '../schemas/auth';
+
+// Define proper types for Prisma errors and request user
+interface PrismaError {
+  code: string;
+  message?: string;
+}
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
 
 export class AuthController {
   static async signup(req: Request, res: Response): Promise<void> {
     try {
       const validatedData = signupSchema.parse(req.body);
 
-      // Check if user already exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
+      // Hash password and create user
+      const hashedPassword = await hashPassword(validatedData.password);
 
-      if (existingUser) {
-        res.status(400).json({ error: 'User with this email already exists' });
-        return;
-      }
-
-      // Hash password
-      const passwordHash = await hashPassword(validatedData.password);
-
-      // Create user
       const user = await prisma.user.create({
         data: {
           email: validatedData.email,
-          password_hash: passwordHash,
-          role: validatedData.role,
-        },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          created_at: true,
+          password_hash: hashedPassword,
+          role: 'USER',
         },
       });
 
@@ -65,7 +62,7 @@ export class AuthController {
 
       // Handle specific Prisma errors
       if (error && typeof error === 'object' && 'code' in error) {
-        const prismaError = error as any;
+        const prismaError = error as PrismaError;
 
         if (prismaError.code === 'P2002') {
           res
@@ -171,7 +168,7 @@ export class AuthController {
 
       // Handle specific Prisma errors
       if (error && typeof error === 'object' && 'code' in error) {
-        const prismaError = error as any;
+        const prismaError = error as PrismaError;
 
         if (prismaError.code === 'P1010') {
           res.status(500).json({
@@ -209,7 +206,8 @@ export class AuthController {
   static async me(req: Request, res: Response): Promise<void> {
     try {
       // This endpoint requires authentication middleware
-      const user = (req as any).user;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const user = authenticatedReq.user;
 
       if (!user) {
         res.status(401).json({ error: 'Not authenticated' });

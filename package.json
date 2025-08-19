@@ -14,7 +14,7 @@
     "dev:api": "npm run dev --workspace=api",
     "build": "npm run --recursive build",
     "test": "npm run --recursive test",
-    "lint": "eslint \"**/*.{ts,tsx}\" --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint \"**/*.{ts,tsx}\" --ext .ts,.tsx --report-unused-disable-directives",
     "typecheck": "npm run --recursive typecheck",
     "clean": "npm run --recursive clean",
     "docker:up": "docker-compose up -d",

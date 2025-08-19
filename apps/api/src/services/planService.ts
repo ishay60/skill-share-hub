@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { Plan } from '@prisma/client';
 
 export interface CreatePlanData {
   spaceId: string;
@@ -8,40 +9,52 @@ export interface CreatePlanData {
   stripe_price_id?: string;
 }
 
+export interface PlanWithSpace extends Plan {
+  space: {
+    id: string;
+    name: string;
+    slug: string;
+    ownerId: string;
+  };
+}
+
 export class PlanService {
-  static async createPlan(data: CreatePlanData) {
+  static async createPlan(data: CreatePlanData): Promise<Plan> {
     return await prisma.plan.create({
       data,
     });
   }
 
-  static async getPlansBySpace(spaceId: string) {
+  static async getPlansBySpace(spaceId: string): Promise<Plan[]> {
     return await prisma.plan.findMany({
       where: { spaceId },
       orderBy: { price_cents: 'asc' },
     });
   }
 
-  static async getPlanById(planId: string) {
+  static async getPlanById(planId: string): Promise<Plan | null> {
     return await prisma.plan.findUnique({
       where: { id: planId },
     });
   }
 
-  static async updatePlan(planId: string, data: Partial<CreatePlanData>) {
+  static async updatePlan(
+    planId: string,
+    data: Partial<CreatePlanData>
+  ): Promise<Plan> {
     return await prisma.plan.update({
       where: { id: planId },
       data,
     });
   }
 
-  static async deletePlan(planId: string) {
+  static async deletePlan(planId: string): Promise<Plan> {
     return await prisma.plan.delete({
       where: { id: planId },
     });
   }
 
-  static async createDefaultPlans(spaceId: string) {
+  static async createDefaultPlans(spaceId: string): Promise<Plan[]> {
     const defaultPlans = [
       {
         spaceId,
@@ -66,7 +79,7 @@ export class PlanService {
     return createdPlans;
   }
 
-  static async getPlanWithSpace(planId: string) {
+  static async getPlanWithSpace(planId: string): Promise<PlanWithSpace | null> {
     return await prisma.plan.findUnique({
       where: { id: planId },
       include: {

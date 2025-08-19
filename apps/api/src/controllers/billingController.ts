@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma';
-import { authenticateToken } from '../middleware/auth';
+
+// Define proper types for authenticated request
+interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -11,7 +19,8 @@ export class BillingController {
   static async createCheckoutSession(req: Request, res: Response): Promise<void> {
     try {
       const { spaceId, planId } = req.body;
-      const userId = (req as any).user.userId;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = authenticatedReq.user.userId;
 
       if (!spaceId || !planId) {
         res.status(400).json({ error: 'Space ID and Plan ID are required' });
@@ -50,7 +59,7 @@ export class BillingController {
       }
 
       // Get or create Stripe customer
-      let user = await prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
       });
 
@@ -140,7 +149,8 @@ export class BillingController {
 
   static async getSubscriptionStatus(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.userId;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = authenticatedReq.user.userId;
       const { spaceId } = req.params;
 
       const subscription = await prisma.subscription.findFirst({
@@ -176,7 +186,8 @@ export class BillingController {
 
   static async cancelSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.userId;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = authenticatedReq.user.userId;
       const { subscriptionId } = req.params;
 
       const subscription = await prisma.subscription.findFirst({
@@ -220,25 +231,36 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     const stripeSubscription = await stripe.subscriptions.retrieve(subscription);
     const customer = await stripe.customers.retrieve(stripeSubscription.customer as string);
 
-    // Create or update subscription in database
-    await prisma.subscription.upsert({
+    // Check if subscription already exists
+    const existingSubscription = await prisma.subscription.findFirst({
       where: { stripe_sub_id: subscription },
-      update: {
-        status: stripeSubscription.status,
-        current_period_start: new Date(stripeSubscription.current_period_start * 1000),
-        current_period_end: new Date(stripeSubscription.current_period_end * 1000),
-      },
-      create: {
-        userId,
-        spaceId,
-        planId,
-        stripe_customer_id: customer.id as string,
-        stripe_sub_id: subscription,
-        status: stripeSubscription.status,
-        current_period_start: new Date(stripeSubscription.current_period_start * 1000),
-        current_period_end: new Date(stripeSubscription.current_period_end * 1000),
-      },
     });
+
+    if (existingSubscription) {
+      // Update existing subscription
+      await prisma.subscription.update({
+        where: { id: existingSubscription.id },
+        data: {
+          status: stripeSubscription.status,
+          current_period_start: new Date(stripeSubscription.current_period_start * 1000),
+          current_period_end: new Date(stripeSubscription.current_period_end * 1000),
+        },
+      });
+    } else {
+      // Create new subscription
+      await prisma.subscription.create({
+        data: {
+          userId,
+          spaceId,
+          planId,
+          stripe_customer_id: customer.id as string,
+          stripe_sub_id: subscription,
+          status: stripeSubscription.status,
+          current_period_start: new Date(stripeSubscription.current_period_start * 1000),
+          current_period_end: new Date(stripeSubscription.current_period_end * 1000),
+        },
+      });
+    }
 
     // Update membership status
     await prisma.membership.upsert({
@@ -314,6 +336,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
   try {
+    // Update subscription status in database
     await prisma.subscription.updateMany({
       where: { stripe_sub_id: subscription.id },
       data: { status: 'canceled' },
@@ -333,6 +356,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
         data: { status: 'none' },
       });
     }
+
+    console.log(`Subscription deleted: ${subscription.id}`);
   } catch (error) {
     console.error('Error handling subscription deleted:', error);
     throw error;
