@@ -15,7 +15,7 @@
     "build": "npm run --recursive build",
     "test": "npm run --recursive test",
     "lint": "eslint \"**/*.{ts,tsx}\" --ext .ts,.tsx --report-unused-disable-directives",
-    "typecheck": "npm run --recursive typecheck",
+    "typecheck": "npm run typecheck --workspace=api && npm run typecheck --workspace=web && npm run typecheck --workspace=@skill-share-hub/types && npm run typecheck --workspace=@skill-share-hub/ui",
     "clean": "npm run --recursive clean",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",

@@ -23,17 +23,20 @@ interface Plan {
   price_cents: number;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  is_premium: boolean;
+  published_at: string;
+  created_at: string;
+}
+
 interface Space {
   id: string;
   name: string;
   slug: string;
   description?: string;
-  posts: Array<{
-    id: string;
-    title: string;
-    is_premium: boolean;
-    published_at: string;
-  }>;
+  posts: Post[];
   plans: Plan[];
   _count: {
     posts: number;

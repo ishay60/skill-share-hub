@@ -24,7 +24,7 @@ export const generateToken = (payload: JWTPayload): string => {
   }
   
   return jwt.sign(payload, secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: '7d',
   });
 };
 
