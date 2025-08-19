@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
+import { join } from 'path';
 
 // Load test environment variables
-config();
+config({ path: join(__dirname, '../../test.env') });
 
 const prisma = new PrismaClient({
   datasources: {
