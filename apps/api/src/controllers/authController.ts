@@ -7,6 +7,9 @@ import { prisma } from '../lib/prisma';
 interface PrismaError {
   code: string;
   message?: string;
+  meta?: {
+    target?: string[];
+  };
 }
 
 interface AuthenticatedRequest extends Request {
@@ -21,6 +24,16 @@ export class AuthController {
   static async signup(req: Request, res: Response): Promise<void> {
     try {
       const validatedData = signupSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.email },
+      });
+
+      if (existingUser) {
+        res.status(409).json({ error: 'Email already in use.' });
+        return;
+      }
 
       // Hash password and create user
       const hashedPassword = await hashPassword(validatedData.password);
@@ -65,9 +78,14 @@ export class AuthController {
         const prismaError = error as PrismaError;
 
         if (prismaError.code === 'P2002') {
-          res
-            .status(400)
-            .json({ error: 'An account with this email already exists' });
+          // Check if it's an email constraint violation
+          if (prismaError.meta?.target?.includes('email')) {
+            res.status(409).json({ error: 'Email already in use.' });
+          } else {
+            res
+              .status(400)
+              .json({ error: 'A record with this information already exists' });
+          }
           return;
         }
 

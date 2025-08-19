@@ -45,9 +45,9 @@ describe('AuthController', () => {
       const response = await request(app)
         .post('/api/auth/signup')
         .send(userData)
-        .expect(400);
+        .expect(409);
 
-      expect(response.body.error).toBe('User with this email already exists');
+      expect(response.body.error).toBe('Email already in use.');
     });
 
     it('should validate required fields', async () => {
