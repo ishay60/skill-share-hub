@@ -12,21 +12,21 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.3.0",
+    "@skill-share-hub/types": "*",
+    "@skill-share-hub/ui": "*",
+    "axios": "^1.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "@skill-share-hub/ui": "*",
-    "@skill-share-hub/types": "*",
-    "axios": "^1.6.0",
     "react-hook-form": "^7.48.0",
-    "zod": "^3.22.0",
-    "@hookform/resolvers": "^3.3.0"
+    "react-router-dom": "^6.20.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.1.0",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.55.0",

@@ -14,7 +14,7 @@
     "dev:api": "npm run dev --workspace=api",
     "build": "npm run --recursive build",
     "test": "npm run --recursive test",
-    "lint": "npm run --recursive lint",
+    "lint": "eslint \"**/*.{ts,tsx}\" --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
     "typecheck": "npm run --recursive typecheck",
     "clean": "npm run --recursive clean",
     "docker:up": "docker-compose up -d",
@@ -24,11 +24,16 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "typescript": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.55.0",
     "prettier": "^3.1.0",
-    "eslint": "^8.55.0"
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
   }
 }

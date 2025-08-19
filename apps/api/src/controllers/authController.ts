@@ -102,10 +102,18 @@ export class AuthController {
         }
       }
 
-      // Generic error for unexpected issues
-      res
-        .status(500)
-        .json({ error: 'Something went wrong. Please try again.' });
+      // Generic error for unexpected issues (SIGNUP)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Detailed signup error:', error);
+        res.status(500).json({
+          error: 'Something went wrong. Please try again.',
+          debug: error instanceof Error ? error.message : String(error),
+        });
+      } else {
+        res
+          .status(500)
+          .json({ error: 'Something went wrong. Please try again.' });
+      }
     }
   }
 

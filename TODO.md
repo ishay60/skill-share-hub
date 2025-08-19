@@ -136,7 +136,7 @@ model Membership {
 
 ---
 
-## 💳 Phase 2: Billing with Stripe
+## 💳 Phase 2: Billing with Stripe ✅
 
 **Goal**: Real subscriptions with plan, checkout, webhooks.
 
@@ -175,17 +175,17 @@ model Subscription {
 
 ### 🎫 Tickets
 
-- [ ] `feat(api): create checkout session POST /billing/checkout`
-- [ ] `feat(api): stripe webhook handler + signature verification`
-- [ ] `feat(web): pricing UI on space page, paywall button`
-- [ ] `chore: stripe-cli in docker compose for local tests`
-- [ ] `test: webhook integration tests with fixtures`
+- [x] `feat(api): create checkout session POST /billing/checkout`
+- [x] `feat(api): stripe webhook handler + signature verification`
+- [x] `feat(web): pricing UI on space page, paywall button`
+- [x] `chore: stripe-cli in docker compose for local tests`
+- [x] `test: webhook integration tests with fixtures`
 
 ### ✅ Acceptance Criteria
 
-- [ ] Clicking Subscribe opens Stripe Checkout and on success unlocks premium posts
-- [ ] Webhook retries are idempotent
-- [ ] Subscription status visible on dashboard
+- [x] Clicking Subscribe opens Stripe Checkout and on success unlocks premium posts
+- [x] Webhook retries are idempotent
+- [x] Subscription status visible on dashboard
 
 ---
 
@@ -476,5 +476,5 @@ pnpm dev:api    # Backend on http://localhost:4000
 
 ---
 
-_Last updated: [Current Date]_
-_Project Status: 🚧 In Progress_
+_Last updated: August 17, 2025_
+_Project Status: 🚀 Phase 2 Complete - Ready for Phase 3_
