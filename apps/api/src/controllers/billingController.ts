@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma';
+import { Plan } from '@prisma/client';
 
 // Define proper types for authenticated request
 interface AuthenticatedRequest extends Request {
@@ -41,7 +42,7 @@ export class BillingController {
         return;
       }
 
-      const plan = space.plans.find(p => p.id === planId);
+      const plan = space.plans.find((p: Plan) => p.id === planId);
       if (!plan) {
         res.status(404).json({ error: 'Plan not found' });
         return;
