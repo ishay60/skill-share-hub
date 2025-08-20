@@ -150,12 +150,18 @@ export const skipRateLimit = (req: Request): boolean => {
     return true;
   }
 
-  // Skip for admin users in development
-  if (process.env.NODE_ENV !== 'production') {
-    const authenticatedReq = req as any;
-    if (authenticatedReq.user?.role === 'admin') {
-      return true;
-    }
+  // Skip rate limiting entirely in development or demo mode
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.DEMO_MODE === 'true'
+  ) {
+    return true;
+  }
+
+  // Skip for admin users in production
+  const authenticatedReq = req as any;
+  if (authenticatedReq.user?.role === 'admin') {
+    return true;
   }
 
   return false;

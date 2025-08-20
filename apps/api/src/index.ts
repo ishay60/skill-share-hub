@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { config } from 'dotenv';
 import { SocketManager } from './lib/socket';
 import { resolveTenant } from './middleware/tenant';
+import { logger, requestLogger } from './lib/logger';
 import {
   globalRateLimit,
   authRateLimit,
@@ -40,6 +41,7 @@ const PORT = process.env.PORT || 4000;
 
 // Security middleware stack
 app.use(requestId); // Request tracking
+app.use(requestLogger); // Structured logging
 app.use(securityHeaders); // Enhanced Helmet config
 app.use(ipSecurity); // IP validation and blocking
 app.use(securityLogger); // Suspicious activity logging
@@ -321,9 +323,24 @@ const socketManager = new SocketManager(httpServer);
 
 // Start server
 httpServer.listen(PORT, () => {
+  logger.info('🚀 SkillShareHub API Server started', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    demoMode: process.env.DEMO_MODE === 'true',
+    rateLimitingDisabled:
+      process.env.NODE_ENV !== 'production' || process.env.DEMO_MODE === 'true',
+    features: ['WebSocket', 'Real-time Q&A', 'Analytics', 'Billing'],
+  });
+
   console.log(`🚀 SkillShareHub API server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.DEMO_MODE === 'true'
+  ) {
+    console.log(`🔓 Rate limiting disabled for development/demo`);
+  }
   console.log(`⚡ Socket.io server ready for real-time Q&A`);
 });
 

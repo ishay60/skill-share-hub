@@ -4,6 +4,7 @@ import { apiClient } from '../lib/api';
 import Pricing from '../components/Pricing';
 import { QAWidget } from '../components/QAWidget';
 import SafeHTMLContent from '../components/SafeHTMLContent';
+import DemoModeSwitch from '../components/DemoModeSwitch';
 
 interface Post {
   id: string;
@@ -36,6 +37,7 @@ const SpacePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
+  const [demoPremiumMode, setDemoPremiumMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'qa'>('posts');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [token, setToken] = useState<string>('');
@@ -260,39 +262,54 @@ const SpacePage: React.FC = () => {
                         {new Date(post.published_at).toLocaleDateString()}
                       </p>
 
-                      {/* Content Preview */}
+                      {/* Content - Full if demo premium mode, preview otherwise */}
                       <div className="mb-4 relative">
-                        <div className="max-h-24 overflow-hidden">
-                          <SafeHTMLContent
-                            content={
-                              post.content_html.substring(0, 200) + '...'
-                            }
-                            type="html"
-                            allowInteractive={false}
-                            className="text-gray-600 text-sm"
-                          />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
-                      </div>
-
-                      <div className="p-4 bg-indigo-50 rounded-md">
-                        <p className="text-sm text-indigo-700 mb-3">
-                          🔒 This is premium content. Subscribe to access the
-                          full post and more exclusive content.
-                        </p>
-                        {space.plans && space.plans.length > 0 && (
-                          <button
-                            onClick={() =>
-                              document
-                                .getElementById('pricing-section')
-                                ?.scrollIntoView({ behavior: 'smooth' })
-                            }
-                            className="text-sm text-indigo-700 hover:text-indigo-800 font-medium underline"
-                          >
-                            View subscription plans →
-                          </button>
+                        {demoPremiumMode ? (
+                          <div className="post-content">
+                            <SafeHTMLContent
+                              content={post.content_html}
+                              type="html"
+                              allowInteractive={true}
+                              className="text-gray-700"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="max-h-24 overflow-hidden">
+                              <SafeHTMLContent
+                                content={
+                                  post.content_html.substring(0, 200) + '...'
+                                }
+                                type="html"
+                                allowInteractive={false}
+                                className="text-gray-600 text-sm"
+                              />
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                          </>
                         )}
                       </div>
+
+                      {!demoPremiumMode && (
+                        <div className="p-4 bg-indigo-50 rounded-md">
+                          <p className="text-sm text-indigo-700 mb-3">
+                            🔒 This is premium content. Subscribe to access the
+                            full post and more exclusive content.
+                          </p>
+                          {space.plans && space.plans.length > 0 && (
+                            <button
+                              onClick={() =>
+                                document
+                                  .getElementById('pricing-section')
+                                  ?.scrollIntoView({ behavior: 'smooth' })
+                              }
+                              className="text-sm text-indigo-700 hover:text-indigo-800 font-medium underline"
+                            >
+                              View subscription plans →
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -334,6 +351,9 @@ const SpacePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Demo Mode Switch for development/demo environments */}
+      <DemoModeSwitch onPremiumModeChange={setDemoPremiumMode} />
     </div>
   );
 };

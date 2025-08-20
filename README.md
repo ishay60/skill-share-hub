@@ -47,7 +47,23 @@ cp env.example .env
 # Edit .env with your configuration
 ```
 
-### 3. Start Development Environment
+### 3. ⚡ One-Command Startup (Recommended)
+
+**Fastest way to get started:**
+
+```bash
+# Quick start with demo data (recommended)
+./quick-start.sh
+
+# Or with full options
+./start-skillshare.sh --demo --reset
+```
+
+**Demo Account:** `demo@skillsharehub.com` / `demo123`
+
+See [STARTUP.md](./STARTUP.md) for full startup options and troubleshooting.
+
+### 4. Manual Development Setup (Alternative)
 
 ```bash
 # Start all services with Docker
@@ -58,7 +74,7 @@ pnpm dev:web    # Frontend on http://localhost:3000
 pnpm dev:api    # Backend on http://localhost:4000
 ```
 
-### 4. Database Setup
+### 5. Database Setup
 
 ```bash
 # Generate Prisma client
