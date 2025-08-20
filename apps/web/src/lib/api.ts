@@ -181,6 +181,48 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  // Analytics endpoints
+  async getAnalyticsOverview() {
+    return this.request('/api/analytics/overview');
+  }
+
+  async getSpaceAnalytics(spaceId: string, days = 30) {
+    return this.request(
+      `/api/analytics/spaces/${spaceId}/dashboard?days=${days}`
+    );
+  }
+
+  async getRealtimeMetrics(spaceId: string) {
+    return this.request(`/api/analytics/spaces/${spaceId}/realtime`);
+  }
+
+  async generateSnapshots(date?: string) {
+    return this.request('/api/analytics/snapshots/generate', {
+      method: 'POST',
+      body: JSON.stringify({ date }),
+    });
+  }
+
+  // Tenant/Branding endpoints
+  async getTenantInfo() {
+    return this.request('/api/tenant/info');
+  }
+
+  async getSpaceBranding(spaceId: string) {
+    return this.request(`/api/tenant/spaces/${spaceId}/branding`);
+  }
+
+  async updateSpaceBranding(spaceId: string, branding: any) {
+    return this.request(`/api/tenant/spaces/${spaceId}/branding`, {
+      method: 'PUT',
+      body: JSON.stringify(branding),
+    });
+  }
+
+  async getSubdomainSuggestions(name: string) {
+    return this.request(`/api/tenant/subdomain-suggestions?name=${encodeURIComponent(name)}`);
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

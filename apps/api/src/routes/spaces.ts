@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { SpaceController } from '../controllers/spaceController';
 import { authenticateToken, requireCreator } from '../middleware/auth';
+import { logSpaceVisit, logAfterSuccess } from '../middleware/analytics';
 
 const router = Router();
 
 // Public routes
-router.get('/:slug', SpaceController.getSpaceBySlug);
+router.get('/:slug', logSpaceVisit, SpaceController.getSpaceBySlug);
 
 // Protected routes
 router.get('/user/spaces', authenticateToken, SpaceController.getUserSpaces);

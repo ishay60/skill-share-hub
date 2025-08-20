@@ -25,6 +25,7 @@ model User {
   subscriptions Subscription[]
   qaThreads     QAThread[]   @relation("QAThreadCreator")
   qaMessages    QAMessage[]  @relation("QAMessageUser")
+  eventLogs     EventLog[]   @relation("EventLogUser")
   
   @@map("users")
 }
@@ -35,6 +36,19 @@ model Space {
   name        String
   slug        String       @unique
   description String?
+  
+  // Multi-tenancy & Branding
+  custom_domain String?     @unique // e.g., "myspace.com"
+  subdomain     String?     @unique // e.g., "myspace" for myspace.skillsharehub.com
+  logo_url      String?     // Logo image URL
+  brand_color   String?     @default("#4F46E5") // Primary brand color
+  accent_color  String?     @default("#10B981") // Secondary accent color
+  
+  // SEO & Meta
+  meta_title       String?
+  meta_description String?
+  og_image_url     String?
+  
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
   
@@ -45,6 +59,8 @@ model Space {
   plans       Plan[]
   subscriptions Subscription[]
   qaThreads   QAThread[]
+  eventLogs   EventLog[]
+  metricSnapshots MetricSnapshot[]
   
   @@map("spaces")
 }
@@ -150,4 +166,45 @@ model QAMessage {
   user       User     @relation("QAMessageUser", fields: [userId], references: [id])
   
   @@map("qa_messages")
+}
+
+// Analytics Models for Phase 4
+model EventLog {
+  id         String   @id @default(cuid())
+  userId     String?  // Optional - some events might not have a user (e.g., anonymous views)
+  spaceId    String
+  type       String   // enum: view|subscribe|cancel|post_view|qa_message|login|signup
+  metadata   Json?    // Additional event data (post_id, message_id, etc.)
+  created_at DateTime @default(now())
+  
+  // Relations
+  user       User?    @relation("EventLogUser", fields: [userId], references: [id])
+  space      Space    @relation(fields: [spaceId], references: [id])
+  
+  @@index([spaceId, type, created_at])
+  @@index([userId, created_at])
+  @@map("event_logs")
+}
+
+model MetricSnapshot {
+  id             String   @id @default(cuid())
+  spaceId        String
+  date           DateTime @db.Date // Daily snapshots
+  active_subs    Int      @default(0) // Active subscriptions count
+  mrr_cents      Int      @default(0) // Monthly Recurring Revenue in cents
+  total_revenue_cents Int @default(0) // Total revenue to date
+  churn_rate     Float    @default(0) // Churn rate percentage
+  new_subs       Int      @default(0) // New subscriptions today
+  canceled_subs  Int      @default(0) // Cancellations today
+  post_views     Int      @default(0) // Post views today
+  qa_messages    Int      @default(0) // Q&A messages today
+  unique_visitors Int     @default(0) // Unique users active today
+  created_at     DateTime @default(now())
+  
+  // Relations
+  space          Space    @relation(fields: [spaceId], references: [id])
+  
+  @@unique([spaceId, date])
+  @@index([spaceId, date])
+  @@map("metric_snapshots")
 }

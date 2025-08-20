@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { QAController } from '../controllers/qaController';
 import { authenticateToken } from '../middleware/auth';
+import { logQAMessage } from '../middleware/analytics';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.post(
 router.post(
   '/threads/:threadId/messages',
   authenticateToken,
+  logQAMessage,
   QAController.addMessage
 );
 router.post(

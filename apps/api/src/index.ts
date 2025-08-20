@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { config } from 'dotenv';
 import { SocketManager } from './lib/socket';
+import { resolveTenant } from './middleware/tenant';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -13,6 +14,8 @@ import spaceRoutes from './routes/spaces';
 import postRoutes from './routes/posts';
 import billingRoutes from './routes/billing';
 import qaRoutes from './routes/qa';
+import analyticsRoutes from './routes/analytics';
+import tenantRoutes from './routes/tenant';
 
 // Load environment variables
 config();
@@ -23,11 +26,13 @@ const PORT = process.env.PORT || 4000;
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting (generous for development)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // limit each IP to 1000 requests per minute (very generous for dev)
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use(limiter);
 
@@ -48,6 +53,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Cookie parser
 app.use(cookieParser());
+
+// Tenant resolution middleware
+app.use(resolveTenant);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -230,6 +238,8 @@ app.use('/api/spaces', spaceRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/qa', qaRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/tenant', tenantRoutes);
 
 // API version endpoint
 app.get('/api/v1/health', (req, res) => {

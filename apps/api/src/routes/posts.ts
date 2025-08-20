@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { PostController } from '../controllers/postController';
 import { authenticateToken, requireCreator } from '../middleware/auth';
+import { logPostView } from '../middleware/analytics';
 
 const router = Router();
 
 // Public routes
-router.get('/:id', PostController.getPost);
+router.get('/:id', logPostView, PostController.getPost);
 router.get('/space/:slug', PostController.getSpacePosts);
 
 // Protected routes
