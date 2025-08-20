@@ -33,7 +33,7 @@ export class PostController {
       const post = await prisma.post.create({
         data: {
           title: validatedData.title,
-          content_md: validatedData.content_md,
+          content_html: validatedData.content_md, // Accept content_md from frontend but store as content_html
           is_premium: validatedData.is_premium,
           published_at: validatedData.published_at ? new Date(validatedData.published_at) : new Date(),
           spaceId,
@@ -126,7 +126,7 @@ export class PostController {
           posts: {
             where: {
               published_at: { not: null },
-              ...(premium === 'false' && { is_premium: false }),
+              ...(premium === 'true' && { is_premium: true }),
             },
             orderBy: {
               published_at: 'desc',
@@ -134,12 +134,13 @@ export class PostController {
             select: {
               id: true,
               title: true,
+              content_html: true,
               is_premium: true,
               published_at: true,
               created_at: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
       
       if (!space) {

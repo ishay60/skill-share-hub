@@ -70,7 +70,7 @@ model Post {
   spaceId      String
   authorId     String
   title        String
-  content_md   String
+  content_html String
   is_premium   Boolean   @default(false)
   published_at DateTime?
   created_at   DateTime  @default(now())

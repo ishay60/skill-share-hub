@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
 import Pricing from '../components/Pricing';
 import { QAWidget } from '../components/QAWidget';
+import SafeHTMLContent from '../components/SafeHTMLContent';
 
 interface Post {
   id: string;
   title: string;
+  content_html: string;
   is_premium: boolean;
   published_at: string;
   created_at: string;
@@ -217,7 +219,7 @@ const SpacePage: React.FC = () => {
                       key={post.id}
                       className="bg-white rounded-lg shadow-sm border p-6"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {post.title}
                         </h3>
@@ -225,10 +227,18 @@ const SpacePage: React.FC = () => {
                           Free
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 mb-4">
                         Published{' '}
                         {new Date(post.published_at).toLocaleDateString()}
                       </p>
+                      <div className="post-content">
+                        <SafeHTMLContent
+                          content={post.content_html}
+                          type="html"
+                          allowInteractive={true}
+                          className="text-gray-700"
+                        />
+                      </div>
                     </div>
                   ))}
 
@@ -237,7 +247,7 @@ const SpacePage: React.FC = () => {
                       key={post.id}
                       className="bg-white rounded-lg shadow-sm border p-6 border-indigo-200"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {post.title}
                         </h3>
@@ -245,14 +255,30 @@ const SpacePage: React.FC = () => {
                           Premium
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 mb-4">
                         Published{' '}
                         {new Date(post.published_at).toLocaleDateString()}
                       </p>
-                      <div className="mt-4 p-4 bg-indigo-50 rounded-md">
+
+                      {/* Content Preview */}
+                      <div className="mb-4 relative">
+                        <div className="max-h-24 overflow-hidden">
+                          <SafeHTMLContent
+                            content={
+                              post.content_html.substring(0, 200) + '...'
+                            }
+                            type="html"
+                            allowInteractive={false}
+                            className="text-gray-600 text-sm"
+                          />
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                      </div>
+
+                      <div className="p-4 bg-indigo-50 rounded-md">
                         <p className="text-sm text-indigo-700 mb-3">
-                          🔒 This is premium content. Subscribe to access this
-                          post and more exclusive content.
+                          🔒 This is premium content. Subscribe to access the
+                          full post and more exclusive content.
                         </p>
                         {space.plans && space.plans.length > 0 && (
                           <button

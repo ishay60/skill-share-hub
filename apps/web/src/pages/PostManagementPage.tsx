@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
+import RichTextEditor from '../components/RichTextEditor';
+import SafeHTMLContent from '../components/SafeHTMLContent';
 
 interface Post {
   id: string;
   title: string;
-  content_md: string;
+  content_html: string;
   is_premium: boolean;
   published_at: string | null;
   created_at: string;
@@ -31,7 +33,7 @@ const PostManagementPage: React.FC = () => {
   // Form state
   const [postForm, setPostForm] = useState({
     title: '',
-    content_md: '',
+    content_md: '', // Keep as content_md for API compatibility
     is_premium: false,
   });
 
@@ -226,21 +228,19 @@ const PostManagementPage: React.FC = () => {
                       htmlFor="content"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Content (Markdown) *
+                      Content *
                     </label>
-                    <textarea
-                      id="content"
+                    <RichTextEditor
                       value={postForm.content_md}
-                      onChange={e =>
-                        setPostForm({ ...postForm, content_md: e.target.value })
+                      onChange={value =>
+                        setPostForm({ ...postForm, content_md: value })
                       }
-                      placeholder="Write your post content in Markdown format..."
-                      rows={12}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
+                      placeholder="Write your post content with rich formatting..."
+                      height="400px"
                     />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Use Markdown syntax: **bold**, *italic*, # headers, -
-                      lists, etc.
+                    <p className="text-sm text-gray-500 mt-2">
+                      Use the toolbar to format your content. Supports text
+                      styling, headers, lists, links, images, and more.
                     </p>
                   </div>
 
@@ -339,10 +339,17 @@ const PostManagementPage: React.FC = () => {
                             ? `Published ${formatDate(post.published_at)}`
                             : 'Draft'}
                         </p>
-                        <div className="text-sm text-gray-700">
-                          {post.content_md.length > 150
-                            ? `${post.content_md.substring(0, 150)}...`
-                            : post.content_md}
+                        <div className="text-sm text-gray-700 max-h-20 overflow-hidden">
+                          <SafeHTMLContent
+                            content={
+                              post.content_html.length > 150
+                                ? `${post.content_html.substring(0, 150)}...`
+                                : post.content_html
+                            }
+                            type="html"
+                            allowInteractive={false}
+                            className="prose-sm"
+                          />
                         </div>
                       </div>
                       <div className="ml-4">
