@@ -33,15 +33,23 @@ const Dashboard: React.FC = () => {
 
   const loadSpaces = async () => {
     try {
+      console.log('🔍 Loading spaces...');
       const response = await apiClient.getUserSpaces();
+      console.log('📦 API response:', response);
+
       if (response.error) {
+        console.error('❌ API error:', response.error);
         setError(response.error);
         return;
       }
-      setSpaces(response.data || []);
+
+      console.log('✅ Spaces loaded:', response.data);
+      setSpaces(response.data?.spaces || []);
     } catch (err) {
+      console.error('💥 Exception:', err);
       setError('Failed to load spaces');
     } finally {
+      console.log('⏹️ Loading finished');
       setIsLoading(false);
     }
   };

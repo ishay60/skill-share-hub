@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
 import Pricing from '../components/Pricing';
+import { QAWidget } from '../components/QAWidget';
 
 interface Post {
   id: string;
@@ -13,6 +14,7 @@ interface Post {
 
 interface Space {
   id: string;
+  ownerId: string;
   name: string;
   slug: string;
   description?: string;
@@ -32,12 +34,32 @@ const SpacePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<'posts' | 'qa'>('posts');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [token, setToken] = useState<string>('');
 
   useEffect(() => {
     if (slug) {
       loadSpace();
     }
+    // Load user token from localStorage
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      loadCurrentUser(storedToken);
+    }
   }, [slug]);
+
+  const loadCurrentUser = async (userToken: string) => {
+    try {
+      const response = await apiClient.getMe();
+      if (response.data) {
+        setCurrentUser(response.data.user);
+      }
+    } catch (err) {
+      console.log('Not authenticated');
+    }
+  };
 
   const loadSpace = async () => {
     try {
@@ -136,90 +158,154 @@ const SpacePage: React.FC = () => {
             </div>
           )}
 
+          {/* Navigation Tabs */}
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-gray-900">Posts</h2>
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={showPremiumOnly}
-                    onChange={handlePremiumToggle}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Show premium only
-                  </span>
-                </label>
-              </div>
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('posts')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'posts'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  📝 Posts
+                </button>
+                <button
+                  onClick={() => setActiveTab('qa')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'qa'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  💬 Q&A
+                </button>
+              </nav>
             </div>
-
-            {publicPosts.length === 0 && premiumPosts.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
-                <p className="text-gray-500">No posts available yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {publicPosts.map(post => (
-                  <div
-                    key={post.id}
-                    className="bg-white rounded-lg shadow-sm border p-6"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {post.title}
-                      </h3>
-                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        Free
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Published{' '}
-                      {new Date(post.published_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-
-                {premiumPosts.map(post => (
-                  <div
-                    key={post.id}
-                    className="bg-white rounded-lg shadow-sm border p-6 border-indigo-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {post.title}
-                      </h3>
-                      <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
-                        Premium
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Published{' '}
-                      {new Date(post.published_at).toLocaleDateString()}
-                    </p>
-                    <div className="mt-4 p-4 bg-indigo-50 rounded-md">
-                      <p className="text-sm text-indigo-700 mb-3">
-                        🔒 This is premium content. Subscribe to access this
-                        post and more exclusive content.
-                      </p>
-                      {space.plans && space.plans.length > 0 && (
-                        <button
-                          onClick={() =>
-                            document
-                              .getElementById('pricing-section')
-                              ?.scrollIntoView({ behavior: 'smooth' })
-                          }
-                          className="text-sm text-indigo-700 hover:text-indigo-800 font-medium underline"
-                        >
-                          View subscription plans →
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Tab Content */}
+          {activeTab === 'posts' && (
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900">Posts</h2>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={showPremiumOnly}
+                      onChange={handlePremiumToggle}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Show premium only
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {publicPosts.length === 0 && premiumPosts.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
+                  <p className="text-gray-500">No posts available yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {publicPosts.map(post => (
+                    <div
+                      key={post.id}
+                      className="bg-white rounded-lg shadow-sm border p-6"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {post.title}
+                        </h3>
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          Free
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Published{' '}
+                        {new Date(post.published_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+
+                  {premiumPosts.map(post => (
+                    <div
+                      key={post.id}
+                      className="bg-white rounded-lg shadow-sm border p-6 border-indigo-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {post.title}
+                        </h3>
+                        <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                          Premium
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Published{' '}
+                        {new Date(post.published_at).toLocaleDateString()}
+                      </p>
+                      <div className="mt-4 p-4 bg-indigo-50 rounded-md">
+                        <p className="text-sm text-indigo-700 mb-3">
+                          🔒 This is premium content. Subscribe to access this
+                          post and more exclusive content.
+                        </p>
+                        {space.plans && space.plans.length > 0 && (
+                          <button
+                            onClick={() =>
+                              document
+                                .getElementById('pricing-section')
+                                ?.scrollIntoView({ behavior: 'smooth' })
+                            }
+                            className="text-sm text-indigo-700 hover:text-indigo-800 font-medium underline"
+                          >
+                            View subscription plans →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Q&A Tab */}
+          {activeTab === 'qa' && token && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <QAWidget
+                spaceId={space.id}
+                spaceSlug={space.slug}
+                spaceName={space.name}
+                currentUserId={currentUser?.id}
+                isSpaceOwner={currentUser?.id === space.ownerId}
+                token={token}
+              />
+            </div>
+          )}
+
+          {/* Q&A Tab - Not Authenticated */}
+          {activeTab === 'qa' && !token && (
+            <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
+              <div className="text-gray-400 text-6xl mb-4">🔒</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Authentication Required
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Please sign in to participate in Q&A discussions.
+              </p>
+              <button
+                onClick={() => navigate('/auth')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
