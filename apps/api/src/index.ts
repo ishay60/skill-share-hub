@@ -3,13 +3,16 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { createServer } from 'http';
 import { config } from 'dotenv';
+import { SocketManager } from './lib/socket';
 
 // Import routes
 import authRoutes from './routes/auth';
 import spaceRoutes from './routes/spaces';
 import postRoutes from './routes/posts';
 import billingRoutes from './routes/billing';
+import qaRoutes from './routes/qa';
 
 // Load environment variables
 config();
@@ -67,15 +70,19 @@ app.get('/test-billing', (req, res) => {
 app.post('/test-signup', (req, res) => {
   try {
     const { email, password, role } = req.body;
-    
+
     if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password, and role are required' });
+      return res
+        .status(400)
+        .json({ error: 'Email, password, and role are required' });
     }
-    
+
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      return res
+        .status(400)
+        .json({ error: 'Password must be at least 6 characters long' });
     }
-    
+
     // Simulate successful signup
     res.status(201).json({
       message: 'Test signup successful (database not connected)',
@@ -85,7 +92,7 @@ app.post('/test-signup', (req, res) => {
         role,
       },
       token: 'test-token-123',
-      note: 'This is a test endpoint. Database connection needs to be fixed for real signup.'
+      note: 'This is a test endpoint. Database connection needs to be fixed for real signup.',
     });
   } catch (error) {
     res.status(500).json({ error: 'Test signup failed' });
@@ -100,20 +107,26 @@ const inMemoryTokens = new Map();
 app.post('/api/auth/signup-working', async (req, res) => {
   try {
     const { email, password, role } = req.body;
-    
+
     if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password, and role are required' });
+      return res
+        .status(400)
+        .json({ error: 'Email, password, and role are required' });
     }
-    
+
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      return res
+        .status(400)
+        .json({ error: 'Password must be at least 6 characters long' });
     }
-    
+
     // Check if user already exists
     if (inMemoryUsers.has(email)) {
-      return res.status(400).json({ error: 'An account with this email already exists' });
+      return res
+        .status(400)
+        .json({ error: 'An account with this email already exists' });
     }
-    
+
     // Create user (in-memory)
     const userId = `user_${Date.now()}`;
     const user = {
@@ -121,15 +134,15 @@ app.post('/api/auth/signup-working', async (req, res) => {
       email,
       role,
       password_hash: `hashed_${password}`, // In real app, this would be bcrypt hash
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
-    
+
     inMemoryUsers.set(email, user);
-    
+
     // Generate simple token
     const token = `token_${Date.now()}`;
     inMemoryTokens.set(token, userId);
-    
+
     res.status(201).json({
       message: 'Signup successful!',
       user: {
@@ -138,12 +151,11 @@ app.post('/api/auth/signup-working', async (req, res) => {
         role: user.role,
       },
       token,
-      note: 'This is using in-memory storage. Database connection needs to be fixed for persistence.'
+      note: 'This is using in-memory storage. Database connection needs to be fixed for persistence.',
     });
-    
+
     console.log(`✅ User created: ${email} (${role})`);
     console.log(`📊 Total users in memory: ${inMemoryUsers.size}`);
-    
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -154,26 +166,26 @@ app.post('/api/auth/signup-working', async (req, res) => {
 app.post('/api/auth/login-working', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-    
+
     // Find user
     const user = inMemoryUsers.get(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     // Simple password check (in real app, this would be bcrypt compare)
     if (user.password_hash !== `hashed_${password}`) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     // Generate simple token
     const token = `token_${Date.now()}`;
     inMemoryTokens.set(token, user.id);
-    
+
     res.json({
       message: 'Login successful!',
       user: {
@@ -182,11 +194,10 @@ app.post('/api/auth/login-working', async (req, res) => {
         role: user.role,
       },
       token,
-      note: 'This is using in-memory storage. Database connection needs to be fixed for persistence.'
+      note: 'This is using in-memory storage. Database connection needs to be fixed for persistence.',
     });
-    
+
     console.log(`✅ User logged in: ${email}`);
-    
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -199,14 +210,14 @@ app.get('/api/auth/users', (req, res) => {
     id: user.id,
     email: user.email,
     role: user.role,
-    created_at: user.created_at
+    created_at: user.created_at,
   }));
-  
+
   res.json({
     message: 'Users in memory',
     count: users.length,
     users,
-    note: 'This is in-memory storage. Users will be lost when server restarts.'
+    note: 'This is in-memory storage. Users will be lost when server restarts.',
   });
 });
 
@@ -215,6 +226,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/spaces', spaceRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/qa', qaRoutes);
 
 // API version endpoint
 app.get('/api/v1/health', (req, res) => {
@@ -278,11 +290,16 @@ app.use((err: Error, req: express.Request, res: express.Response) => {
   });
 });
 
+// Create HTTP server and initialize Socket.io
+const httpServer = createServer(app);
+const socketManager = new SocketManager(httpServer);
+
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 SkillShareHub API server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`⚡ Socket.io server ready for real-time Q&A`);
 });
 
 export default app;

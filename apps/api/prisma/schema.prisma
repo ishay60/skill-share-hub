@@ -23,6 +23,8 @@ model User {
   memberships   Membership[]
   authoredPosts Post[]       @relation("PostAuthor")
   subscriptions Subscription[]
+  qaThreads     QAThread[]   @relation("QAThreadCreator")
+  qaMessages    QAMessage[]  @relation("QAMessageUser")
   
   @@map("users")
 }
@@ -42,6 +44,7 @@ model Space {
   memberships Membership[]
   plans       Plan[]
   subscriptions Subscription[]
+  qaThreads   QAThread[]
   
   @@map("spaces")
 }
@@ -114,4 +117,37 @@ model Subscription {
   plan                Plan?    @relation(fields: [planId], references: [id])
   
   @@map("subscriptions")
+}
+
+model QAThread {
+  id          String   @id @default(cuid())
+  spaceId     String
+  createdBy   String
+  title       String
+  status      String   @default("active") // enum: active|closed
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  // Relations
+  space       Space    @relation(fields: [spaceId], references: [id])
+  creator     User     @relation("QAThreadCreator", fields: [createdBy], references: [id])
+  messages    QAMessage[]
+  
+  @@map("qa_threads")
+}
+
+model QAMessage {
+  id         String   @id @default(cuid())
+  threadId   String
+  userId     String
+  content    String
+  is_answer  Boolean  @default(false)
+  is_accepted Boolean @default(false)
+  created_at DateTime @default(now())
+  
+  // Relations
+  thread     QAThread @relation(fields: [threadId], references: [id])
+  user       User     @relation("QAMessageUser", fields: [userId], references: [id])
+  
+  @@map("qa_messages")
 }
