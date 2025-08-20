@@ -221,6 +221,13 @@ const Dashboard: React.FC = () => {
                           View Space
                         </button>
                         <button
+                          onClick={() => navigate(`/posts/${space.id}`)}
+                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100"
+                          title="Manage Posts"
+                        >
+                          📝
+                        </button>
+                        <button
                           onClick={() => navigate(`/analytics/${space.id}`)}
                           className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100"
                           title="View Analytics"
