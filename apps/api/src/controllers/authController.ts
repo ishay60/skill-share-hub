@@ -42,7 +42,7 @@ export class AuthController {
         data: {
           email: validatedData.email,
           password_hash: hashedPassword,
-          role: 'USER',
+          role: validatedData.role.toUpperCase(),
         },
       });
 
