@@ -1,12 +1,27 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { config } from 'dotenv';
 import { SocketManager } from './lib/socket';
 import { resolveTenant } from './middleware/tenant';
+import {
+  globalRateLimit,
+  authRateLimit,
+  contentCreationRateLimit,
+  apiRateLimit,
+  billingRateLimit,
+  heavyOperationSlowDown,
+  searchRateLimit,
+} from './middleware/rateLimiting';
+import {
+  securityHeaders,
+  corsOptions,
+  requestId,
+  securityLogger,
+  ipSecurity,
+  securityErrorHandler,
+} from './middleware/security';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -23,29 +38,17 @@ config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Security middleware
-app.use(helmet());
+// Security middleware stack
+app.use(requestId); // Request tracking
+app.use(securityHeaders); // Enhanced Helmet config
+app.use(ipSecurity); // IP validation and blocking
+app.use(securityLogger); // Suspicious activity logging
 
-// Rate limiting (generous for development)
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000, // limit each IP to 1000 requests per minute (very generous for dev)
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-app.use(limiter);
+// Global rate limiting for all requests
+app.use(globalRateLimit);
 
-// CORS configuration
-app.use(
-  cors({
-    origin: [
-      process.env.APP_URL || 'http://localhost:3000',
-      'http://localhost:3001', // Alternative port for development
-    ],
-    credentials: true,
-  })
-);
+// Enhanced CORS configuration
+app.use(cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -232,14 +235,20 @@ app.get('/api/auth/users', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/spaces', spaceRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/billing', billingRoutes);
-app.use('/api/qa', qaRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/tenant', tenantRoutes);
+// API routes with specific rate limiting
+app.use('/api/auth', authRateLimit, resolveTenant, authRoutes);
+app.use('/api/spaces', contentCreationRateLimit, resolveTenant, spaceRoutes);
+app.use('/api/posts', contentCreationRateLimit, resolveTenant, postRoutes);
+app.use('/api/billing', billingRateLimit, resolveTenant, billingRoutes);
+app.use('/api/qa', apiRateLimit, resolveTenant, qaRoutes);
+app.use(
+  '/api/analytics',
+  searchRateLimit,
+  heavyOperationSlowDown,
+  resolveTenant,
+  analyticsRoutes
+);
+app.use('/api/tenant', apiRateLimit, resolveTenant, tenantRoutes);
 
 // API version endpoint
 app.get('/api/v1/health', (req, res) => {
@@ -302,6 +311,9 @@ app.use((err: Error, req: express.Request, res: express.Response) => {
     message,
   });
 });
+
+// Security error handler
+app.use(securityErrorHandler);
 
 // Create HTTP server and initialize Socket.io
 const httpServer = createServer(app);

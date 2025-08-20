@@ -7,20 +7,72 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import BrandingPage from './pages/BrandingPage';
 import PostManagementPage from './pages/PostManagementPage';
 import Layout from './components/Layout';
+import ErrorBoundary, { RouteErrorBoundary } from './components/ErrorBoundary';
 
 function App(): JSX.Element {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<LandingPage />} />
-        <Route path="auth" element={<AuthPage />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="analytics/:spaceId" element={<AnalyticsPage />} />
-        <Route path="branding/:spaceId" element={<BrandingPage />} />
-        <Route path="posts/:spaceId" element={<PostManagementPage />} />
-        <Route path="spaces/:slug" element={<SpacePage />} />
-      </Route>
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route
+            index
+            element={
+              <RouteErrorBoundary>
+                <LandingPage />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="auth"
+            element={
+              <RouteErrorBoundary>
+                <AuthPage />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="dashboard"
+            element={
+              <RouteErrorBoundary>
+                <Dashboard />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="analytics/:spaceId"
+            element={
+              <RouteErrorBoundary>
+                <AnalyticsPage />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="branding/:spaceId"
+            element={
+              <RouteErrorBoundary>
+                <BrandingPage />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="posts/:spaceId"
+            element={
+              <RouteErrorBoundary>
+                <PostManagementPage />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="spaces/:slug"
+            element={
+              <RouteErrorBoundary>
+                <SpacePage />
+              </RouteErrorBoundary>
+            }
+          />
+        </Route>
+      </Routes>
+    </ErrorBoundary>
   );
 }
 
