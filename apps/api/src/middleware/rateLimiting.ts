@@ -1,3 +1,4 @@
+/// <reference path="../types/index.d.ts" />
 import rateLimit from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import { Request, Response } from 'express';

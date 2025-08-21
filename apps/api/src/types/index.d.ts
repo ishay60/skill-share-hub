@@ -1,3 +1,5 @@
+// Global type extensions for Express and other libraries
+
 declare global {
   namespace Express {
     interface Request {
@@ -17,3 +19,6 @@ declare global {
     }
   }
 }
+
+// Ensure this file is treated as a module
+export {};

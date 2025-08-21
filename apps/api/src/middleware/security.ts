@@ -1,3 +1,4 @@
+/// <reference path="../types/index.d.ts" />
 import helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
 
