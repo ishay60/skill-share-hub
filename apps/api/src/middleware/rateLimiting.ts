@@ -32,7 +32,9 @@ const rateLimitHandler = (req: Request, res: Response) => {
   res.status(429).json({
     error: 'Rate Limit Exceeded',
     message: getMessage(req),
-    retryAfter: Math.round((req.rateLimit?.resetTime?.getTime() || Date.now()) / 1000) || 60,
+    retryAfter:
+      Math.round((req.rateLimit?.resetTime?.getTime() || Date.now()) / 1000) ||
+      60,
     type: 'RATE_LIMIT_ERROR',
   });
 };
