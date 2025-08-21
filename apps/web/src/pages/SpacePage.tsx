@@ -75,7 +75,10 @@ const SpacePage: React.FC = () => {
       if (response.data) {
         setSpace({
           ...response.data.space,
-          ownerId: (response.data.space as any).creator_id || (response.data.space as any).ownerId || '',
+          ownerId:
+            (response.data.space as any).creator_id ||
+            (response.data.space as any).ownerId ||
+            '',
           posts: response.data.posts as Post[],
         } as Space);
       }
