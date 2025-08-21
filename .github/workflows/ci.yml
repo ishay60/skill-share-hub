@@ -25,17 +25,13 @@ jobs:
         ports:
           - 5432:5432
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
     - uses: actions/checkout@v4
     
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 20.x
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '20.x'
         cache: 'npm'
     
     - name: Install dependencies
@@ -65,7 +61,7 @@ jobs:
       run: npm run typecheck
     
     - name: Run tests
-      run: npm run test --workspace=api
+      run: npm run test
       working-directory: apps/api
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/skillsharehub_test
