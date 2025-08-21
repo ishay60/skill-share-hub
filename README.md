@@ -1,5 +1,10 @@
 # SkillShareHub 🚀
 
+[![CI](https://github.com/ishay60/skill-share-hub/workflows/CI/badge.svg)](https://github.com/ishay60/skill-share-hub/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+
 A complete SaaS knowledge spaces platform where creators monetize knowledge through rich interactive content, real-time Q&A, and subscription management.
 
 ## 🎯 Project Overview
@@ -288,17 +293,26 @@ See [`.cursor/rules.md`](.cursor/rules.md) for detailed development conventions,
 
 ### Common Issues
 
+#### 🐳 Docker & Services
+
 **Docker services not starting:**
 
 ```bash
 # Check service status
 docker-compose ps
 
-# View logs
+# View logs for all services
 pnpm docker:logs
+
+# View logs for specific service
+docker-compose logs api
+docker-compose logs postgres
 
 # Restart services
 pnpm docker:down && pnpm docker:up
+
+# Clean restart (removes volumes - ⚠️ deletes data)
+docker-compose down -v && docker-compose up -d
 ```
 
 **Database connection issues:**
@@ -307,14 +321,152 @@ pnpm docker:down && pnpm docker:up
 # Check PostgreSQL status
 docker-compose exec postgres pg_isready
 
-# Reset database
-docker-compose down -v && docker-compose up -d
+# Connect to database directly
+docker-compose exec postgres psql -U postgres -d skillsharehub
+
+# Reset database (⚠️ deletes all data)
+docker-compose down -v && docker-compose up -d postgres
+cd apps/api && npm run db:push
 ```
 
-**Port conflicts:**
+#### 🌐 Port Conflicts
 
-- Ensure ports 3000 (web) and 4000 (api) are available
-- Check for other services using these ports
+**Ports already in use:**
+
+```bash
+# Check what's using port 3000 (web)
+lsof -i :3000
+
+# Check what's using port 4000 (api)
+lsof -i :4000
+
+# Kill process using specific port
+kill -9 $(lsof -t -i:3000)
+```
+
+Alternative port configuration:
+- Set `PORT=5000` in your `.env` file for API
+- Update frontend API URL in `apps/web/src/lib/api.ts`
+
+#### 🔑 Authentication & JWT Issues
+
+**"Invalid token" or authentication errors:**
+
+```bash
+# Check JWT_SECRET is set in .env
+grep JWT_SECRET .env
+
+# Clear browser cookies and localStorage
+# In browser console: localStorage.clear()
+```
+
+**Demo account not working:**
+- Ensure demo data is seeded: `npm run demo:setup`
+- Use exact credentials: `demo@skillsharehub.com` / `demo123`
+
+#### 💳 Stripe Integration Issues
+
+**Webhook errors:**
+
+```bash
+# Check Stripe webhook secret
+grep STRIPE_WEBHOOK_SECRET .env
+
+# Test webhook endpoint
+curl -X POST http://localhost:4000/api/billing/webhook
+```
+
+**Checkout not working:**
+- Verify `STRIPE_SECRET_KEY` starts with `sk_test_`
+- Check browser console for CORS errors
+- Ensure frontend can reach API at `http://localhost:4000`
+
+#### 📦 npm/Package Issues
+
+**Dependencies not installing:**
+
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Delete node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# For workspace issues
+npm install --workspaces
+```
+
+**TypeScript compilation errors:**
+
+```bash
+# Generate Prisma client
+cd apps/api && npm run db:generate
+
+# Check TypeScript errors
+npm run typecheck
+```
+
+#### 🔍 Development Issues
+
+**Hot reload not working:**
+- Check if ports 3000/4000 are accessible
+- Restart dev servers: `Ctrl+C` then `npm run dev`
+- Clear browser cache (`Cmd+Shift+R` / `Ctrl+Shift+R`)
+
+**API routes returning 404:**
+- Verify API server is running on port 4000
+- Check network tab in browser dev tools
+- Ensure CORS is properly configured
+
+**Database schema out of sync:**
+
+```bash
+cd apps/api
+npm run db:push  # Push schema changes
+npm run db:studio  # Open Prisma Studio to inspect data
+```
+
+#### 🚀 Production Deployment Issues
+
+**Build failures:**
+
+```bash
+# Build all packages in correct order
+npm run build --workspace=@skill-share-hub/types
+npm run build --workspace=@skill-share-hub/ui
+npm run build --workspace=web
+npm run build --workspace=api
+```
+
+**Environment variables not loading:**
+- Verify `.env` file location and format
+- Check deployment platform environment variable settings
+- Ensure no trailing spaces in `.env` values
+
+### Getting Help
+
+If these solutions don't work:
+
+1. **Check the logs:** `docker-compose logs` often reveals the root cause
+2. **Search issues:** Check existing [GitHub issues](https://github.com/ishay60/skill-share-hub/issues)
+3. **Create an issue:** Include your OS, Node version, and error logs
+4. **Discord/Community:** Join our community for real-time help
+
+### Quick Reset Commands
+
+```bash
+# Nuclear option - reset everything (⚠️ deletes all data)
+docker-compose down -v
+rm -rf node_modules package-lock.json
+npm install
+docker-compose up -d
+cd apps/api && npm run db:push && npm run demo:setup
+
+# Soft reset - keep data
+docker-compose restart
+cd apps/api && npm run db:generate
+```
 
 ## 📚 Resources
 

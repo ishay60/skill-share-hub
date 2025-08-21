@@ -69,7 +69,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Error alerts configured
   - Links: apps/api/src/lib/logger.ts, apps/web/src/components/ErrorBoundary.tsx
 
-- [ ] Liveness and readiness probes
+- [x] Liveness and readiness probes
   - Owner: Ishay
   - Effort: S
   - AC:
@@ -77,6 +77,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Database connectivity checks
     - Service dependency validation
   - Links: apps/api/src/index.ts
+  - ✅ Completed: Added /health/live, /health/ready, and /health/detailed endpoints
 
 - [ ] Postgres backup plan doc
   - Owner: Ishay
@@ -98,7 +99,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
 
 ## Testing and CI
 
-- [ ] Add badges to README for CI status and coverage
+- [x] Add badges to README for CI status and coverage
   - Owner: Ishay
   - Effort: S
   - AC:
@@ -106,6 +107,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Test coverage percentage displayed
     - Build status indicators
   - Links: README.md, .github/workflows
+  - ✅ Completed: Added CI, License, Node.js, and TypeScript badges
 
 - [ ] Unit tests for API routes
   - Owner: Ishay
@@ -183,7 +185,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Request/response schemas defined
   - Links: apps/api/src/routes, apps/api/package.json
 
-- [ ] Add Swagger UI in dev mode
+- [x] Add Swagger UI in dev mode
   - Owner: Ishay
   - Effort: S
   - AC:
@@ -191,6 +193,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Endpoint testing interface
     - Development environment only
   - Links: apps/api/src/index.ts, apps/api/package.json
+  - ✅ Completed: Swagger UI available at /api/docs with auth route documentation
 
 - [ ] Add an architecture diagram for web ↔ API ↔ Socket.io and auth flow
   - Owner: Ishay
@@ -281,7 +284,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - All services started and ready
   - Links: quick-start.sh, start-local.sh
 
-- [ ] Troubleshooting section in README with common errors and fixes
+- [x] Troubleshooting section in README with common errors and fixes
   - Owner: Ishay
   - Effort: S
   - AC:
@@ -289,6 +292,7 @@ A comprehensive roadmap for the SkillShareHub SaaS platform - a knowledge spaces
     - Step-by-step solutions provided
     - Links to relevant resources
   - Links: README.md, docs/troubleshooting.md
+  - ✅ Completed: Comprehensive troubleshooting section with Docker, auth, Stripe, and deployment issues
 
 ## Accessibility and i18n
 

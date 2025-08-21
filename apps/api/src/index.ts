@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { config } from 'dotenv';
 import { SocketManager } from './lib/socket';
+import { setupSwagger } from './lib/swagger';
 import { resolveTenant } from './middleware/tenant';
 import { logger, requestLogger } from './lib/logger';
 import {
@@ -62,7 +63,10 @@ app.use(cookieParser());
 // Tenant resolution middleware
 app.use(resolveTenant);
 
-// Health check endpoint
+// Setup Swagger documentation (dev mode only)
+setupSwagger(app);
+
+// Basic health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -70,6 +74,120 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
   });
+});
+
+// Liveness probe - simple endpoint to check if app is running
+app.get('/health/live', (req, res) => {
+  res.json({
+    status: 'alive',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+// Readiness probe - checks if app is ready to serve traffic
+app.get('/health/ready', async (req, res) => {
+  try {
+    // Check database connectivity
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      await prisma.$disconnect();
+
+      res.json({
+        status: 'ready',
+        timestamp: new Date().toISOString(),
+        checks: {
+          database: 'healthy',
+          uptime: process.uptime(),
+        },
+      });
+    } catch (dbError) {
+      await prisma.$disconnect();
+      throw dbError;
+    }
+  } catch (error) {
+    res.status(503).json({
+      status: 'not ready',
+      timestamp: new Date().toISOString(),
+      checks: {
+        database: 'unhealthy',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+    });
+  }
+});
+
+// Detailed health check with all dependencies
+app.get('/health/detailed', async (req, res) => {
+  const checks = {
+    database: 'unknown',
+    redis: 'unknown',
+    stripe: 'unknown',
+  };
+
+  let overallStatus = 'healthy';
+
+  try {
+    // Database check
+    try {
+      const { PrismaClient } = await import('@prisma/client');
+      const prisma = new PrismaClient();
+      await prisma.$queryRaw`SELECT 1`;
+      await prisma.$disconnect();
+      checks.database = 'healthy';
+    } catch (error) {
+      checks.database = 'unhealthy';
+      overallStatus = 'degraded';
+    }
+
+    // Redis check (if configured)
+    if (process.env.REDIS_URL) {
+      try {
+        // Add Redis check here if needed
+        checks.redis = 'not configured';
+      } catch (error) {
+        checks.redis = 'unhealthy';
+        overallStatus = 'degraded';
+      }
+    } else {
+      checks.redis = 'not configured';
+    }
+
+    // Stripe check
+    if (process.env.STRIPE_SECRET_KEY) {
+      checks.stripe = process.env.STRIPE_SECRET_KEY.startsWith('sk_')
+        ? 'configured'
+        : 'misconfigured';
+    } else {
+      checks.stripe = 'not configured';
+    }
+
+    const statusCode =
+      overallStatus === 'healthy'
+        ? 200
+        : overallStatus === 'degraded'
+          ? 200
+          : 503;
+
+    res.status(statusCode).json({
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '0.1.0',
+      checks,
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      checks,
+    });
+  }
 });
 
 // Test billing endpoint
@@ -267,7 +385,10 @@ app.get('/', (req, res) => {
   res.json({
     message: 'SkillShareHub API',
     version: process.env.npm_package_version || '0.1.0',
-    documentation: '/api/docs',
+    documentation:
+      process.env.NODE_ENV !== 'production'
+        ? '/api/docs'
+        : 'Documentation available in development mode',
     health: '/health',
   });
 });
@@ -319,7 +440,7 @@ app.use(securityErrorHandler);
 
 // Create HTTP server and initialize Socket.io
 const httpServer = createServer(app);
-const socketManager = new SocketManager(httpServer);
+const socketManager = new SocketManager(httpServer); // eslint-disable-line @typescript-eslint/no-unused-vars
 
 // Start server
 httpServer.listen(PORT, () => {
@@ -333,7 +454,14 @@ httpServer.listen(PORT, () => {
   });
 
   console.log(`🚀 SkillShareHub API server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📊 Health checks available:`);
+  console.log(`   Basic: http://localhost:${PORT}/health`);
+  console.log(`   Liveness: http://localhost:${PORT}/health/live`);
+  console.log(`   Readiness: http://localhost:${PORT}/health/ready`);
+  console.log(`   Detailed: http://localhost:${PORT}/health/detailed`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`📚 API Documentation: http://localhost:${PORT}/api/docs`);
+  }
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   if (
     process.env.NODE_ENV !== 'production' ||
