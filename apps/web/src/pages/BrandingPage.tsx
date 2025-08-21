@@ -59,11 +59,11 @@ const BrandingPage: React.FC = () => {
         return;
       }
 
-      setBranding(response.data.branding);
-      setUrls(response.data.urls);
+      setBranding((response.data as any).branding);
+      setUrls((response.data as any).urls);
 
       // Update form data
-      const brandingData = response.data.branding;
+      const brandingData = (response.data as any).branding;
       setFormData({
         subdomain: brandingData.subdomain || '',
         custom_domain: brandingData.custom_domain || '',

@@ -87,7 +87,7 @@ const AnalyticsPage: React.FC = () => {
         return;
       }
       
-      setAnalyticsData(response.data);
+      setAnalyticsData(response.data as AnalyticsData);
     } catch (err) {
       setError('Failed to load analytics data');
     } finally {
@@ -102,9 +102,7 @@ const AnalyticsPage: React.FC = () => {
     }).format(cents / 100);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+
 
   const formatRelativeTime = (dateString: string) => {
     const now = new Date();

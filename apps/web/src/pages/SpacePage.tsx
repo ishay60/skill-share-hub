@@ -50,15 +50,15 @@ const SpacePage: React.FC = () => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      loadCurrentUser(storedToken);
+      loadCurrentUser();
     }
   }, [slug]);
 
-  const loadCurrentUser = async (userToken: string) => {
+  const loadCurrentUser = async () => {
     try {
       const response = await apiClient.getMe();
       if (response.data) {
-        setCurrentUser(response.data.user);
+        setCurrentUser((response.data as any).user);
       }
     } catch (err) {
       console.log('Not authenticated');
@@ -75,8 +75,9 @@ const SpacePage: React.FC = () => {
       if (response.data) {
         setSpace({
           ...response.data.space,
-          posts: response.data.posts,
-        });
+          ownerId: (response.data.space as any).creator_id || (response.data.space as any).ownerId || '',
+          posts: response.data.posts as Post[],
+        } as Space);
       }
     } catch (err) {
       setError('Failed to load space');

@@ -54,7 +54,7 @@ const PostManagementPage: React.FC = () => {
         return;
       }
 
-      const userSpace = spacesResponse.data?.spaces?.find(
+      const userSpace = (spacesResponse.data as any)?.spaces?.find(
         (s: any) => s.id === spaceId
       );
       if (!userSpace) {

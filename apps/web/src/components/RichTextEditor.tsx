@@ -53,7 +53,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         placeholder={placeholder}
         style={{ height }}
       />
-      <style jsx global>{`
+      <style>{`
         .rich-text-editor .ql-container {
           min-height: ${height};
           font-family: inherit;

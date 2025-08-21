@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
           return;
         }
 
-        setSpaces(response.data?.spaces || []);
+        setSpaces((response.data as any)?.spaces || []);
       } catch (err) {
         setError('Failed to load spaces');
       } finally {
