@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { AuthenticatedRequest } from '../middleware/auth';
+import { AuthenticatedRequest } from '../types/auth';
 
 export class QAController {
   // Get Q&A threads for a space

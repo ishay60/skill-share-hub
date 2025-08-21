@@ -1,14 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { verifyToken, extractTokenFromRequest } from '../lib/auth';
 import { prisma } from '../lib/prisma';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
+// Import from centralized types
+import { AuthenticatedRequest } from '../types/auth';
 
 export const authenticateToken = async (
   req: AuthenticatedRequest,

@@ -72,8 +72,8 @@ async function main(): Promise<void> {
   const publicPost = await prisma.post.create({
     data: {
       title: 'Getting Started with JavaScript',
-      content_md:
-        '# Getting Started with JavaScript\n\nJavaScript is a powerful programming language...',
+      content_html:
+        '<h1>Getting Started with JavaScript</h1><p>JavaScript is a powerful programming language...</p>',
       is_premium: false,
       published_at: new Date(),
       spaceId: space.id,
@@ -84,8 +84,8 @@ async function main(): Promise<void> {
   const premiumPost = await prisma.post.create({
     data: {
       title: 'Advanced JavaScript Patterns',
-      content_md:
-        '# Advanced JavaScript Patterns\n\nThis is premium content for subscribers...',
+      content_html:
+        '<h1>Advanced JavaScript Patterns</h1><p>This is premium content for subscribers...</p>',
       is_premium: true,
       published_at: new Date(),
       spaceId: space.id,

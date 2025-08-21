@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { SpaceController } from '../controllers/spaceController';
 import { authenticateToken, requireCreator } from '../middleware/auth';
-import { logSpaceVisit, logAfterSuccess } from '../middleware/analytics';
+import { logSpaceVisit } from '../middleware/analytics';
 
 const router = Router();
 

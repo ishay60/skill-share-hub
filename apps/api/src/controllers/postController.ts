@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { createPostSchema, updatePostSchema } from '../schemas/post';
-import { AuthenticatedRequest } from '../middleware/auth';
+import { AuthenticatedRequest } from '../types/auth';
 
 export class PostController {
   static async createPost(req: AuthenticatedRequest, res: Response): Promise<void> {

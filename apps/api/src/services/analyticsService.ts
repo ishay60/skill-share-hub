@@ -40,7 +40,7 @@ export class AnalyticsService {
           userId: eventData.userId || null,
           spaceId: eventData.spaceId,
           type: eventData.type,
-          metadata: eventData.metadata || null,
+          metadata: eventData.metadata || undefined,
         },
       });
     } catch (error) {

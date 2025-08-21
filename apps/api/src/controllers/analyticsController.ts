@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AnalyticsService } from '../services/analyticsService';
 import { AuthenticatedRequest } from '../types/auth';
 import { prisma } from '../lib/prisma';

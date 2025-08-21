@@ -49,7 +49,7 @@ export const validateRequest = (
         const validationErrors = error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message,
-          received: err.received,
+          received: 'received' in err ? err.received : undefined,
         }));
 
         return res.status(400).json({
@@ -92,7 +92,7 @@ export const validateMultiple = (schemas: {
                 target: 'body',
                 field: err.path.join('.'),
                 message: err.message,
-                received: err.received,
+                received: 'received' in err ? err.received : undefined,
               }))
             );
           }
@@ -110,7 +110,7 @@ export const validateMultiple = (schemas: {
                 target: 'query',
                 field: err.path.join('.'),
                 message: err.message,
-                received: err.received,
+                received: 'received' in err ? err.received : undefined,
               }))
             );
           }
@@ -128,7 +128,7 @@ export const validateMultiple = (schemas: {
                 target: 'params',
                 field: err.path.join('.'),
                 message: err.message,
-                received: err.received,
+                received: 'received' in err ? err.received : undefined,
               }))
             );
           }

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { SlugService } from '../services/slugService';
 import { createSpaceSchema, updateSpaceSchema } from '../schemas/space';
-import { AuthenticatedRequest } from '../middleware/auth';
+import { AuthenticatedRequest } from '../types/auth';
 import { PlanService } from '../services/planService';
 
 export class SpaceController {

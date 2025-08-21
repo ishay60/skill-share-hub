@@ -79,19 +79,7 @@ export const securityHeaders = helmet({
   // Origin Agent Cluster
   originAgentCluster: true,
 
-  // Permissions Policy
-  permissionsPolicy: {
-    features: {
-      geolocation: ['none'],
-      microphone: ['none'],
-      camera: ['none'],
-      payment: ['self'], // Allow payments for Stripe
-      usb: ['none'],
-      magnetometer: ['none'],
-      accelerometer: ['none'],
-      gyroscope: ['none'],
-    },
-  },
+  // Note: Permissions Policy can be added via CSP or custom middleware if needed
 
   // Referrer Policy
   referrerPolicy: {

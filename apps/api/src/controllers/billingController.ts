@@ -4,13 +4,8 @@ import { prisma } from '../lib/prisma';
 import { Plan } from '@prisma/client';
 
 // Define proper types for authenticated request
-interface AuthenticatedRequest extends Request {
-  user: {
-    userId: string;
-    email: string;
-    role: string;
-  };
-}
+// Import from centralized types
+import { RequiredAuthRequest } from '../types/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -23,8 +18,8 @@ export class BillingController {
   ): Promise<void> {
     try {
       const { spaceId, planId } = req.body;
-      const authenticatedReq = req as AuthenticatedRequest;
-      const userId = authenticatedReq.user.userId;
+      const authenticatedReq = req as RequiredAuthRequest;
+      const userId = authenticatedReq.user.id;
 
       if (!spaceId || !planId) {
         res.status(400).json({ error: 'Space ID and Plan ID are required' });
@@ -168,8 +163,8 @@ export class BillingController {
     res: Response
   ): Promise<void> {
     try {
-      const authenticatedReq = req as AuthenticatedRequest;
-      const userId = authenticatedReq.user.userId;
+      const authenticatedReq = req as RequiredAuthRequest;
+      const userId = authenticatedReq.user.id;
       const { spaceId } = req.params;
 
       const subscription = await prisma.subscription.findFirst({
@@ -205,8 +200,8 @@ export class BillingController {
 
   static async cancelSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const authenticatedReq = req as AuthenticatedRequest;
-      const userId = authenticatedReq.user.userId;
+      const authenticatedReq = req as RequiredAuthRequest;
+      const userId = authenticatedReq.user.id;
       const { subscriptionId } = req.params;
 
       const subscription = await prisma.subscription.findFirst({

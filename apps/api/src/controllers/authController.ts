@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { comparePassword, generateToken, hashPassword } from '../lib/auth';
 import { loginSchema, signupSchema } from '../schemas/auth';
 import { prisma } from '../lib/prisma';
+import { AuthenticatedRequest } from '../types/auth';
 
 // Define proper types for Prisma errors and request user
 interface PrismaError {
@@ -9,14 +10,6 @@ interface PrismaError {
   message?: string;
   meta?: {
     target?: string[];
-  };
-}
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
   };
 }
 
